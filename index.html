@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>RD Cuts Booking</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; }
+    input, select, button { display: block; margin: 10px 0; padding: 5px; width: 100%; }
+  </style>
+</head>
+<body>
+  <h1>RD Cuts Booking</h1>
+  <p>29 Rockwall Drive, Craigieburn</p>
+
+  <div id="roleSelection">
+    <button onclick="setRole('customer')">Customer View</button>
+    <button onclick="setRole('admin')">Admin View</button>
+  </div>
+
+  <div id="customerView" style="display:none;">
+    <h2>Our Services</h2>
+    <p>Haircut — $25</p>
+    <p>Beard Trim — $5</p>
+    <p>Available times: <span id="availTime"></span></p>
+
+    <form id="bookingForm">
+      <input name="name" placeholder="Full Name" required>
+      <select name="service" required>
+        <option value="">Select service</option>
+        <option value="Haircut">Haircut</option>
+        <option value="Beard Trim">Beard Trim</option>
+      </select>
+      <input type="date" name="date" required>
+      <input type="time" name="time" required>
+      <button type="submit">Book Now</button>
+    </form>
+    <p id="confirmation"></p>
+  </div>
+
+  <div id="adminView" style="display:none;">
+    <h2>Admin Panel</h2>
+    <label>Availability:</label>
+    <input type="time" id="openTime">
+    <input type="time" id="closeTime">
+    <button onclick="saveAvailability()">Save Availability</button>
+
+    <h3>Bookings</h3>
+    <ul id="bookingList"></ul>
+  </div>
+
+<script>
+let availability = JSON.parse(localStorage.getItem('availability')) || { open: "09:00", close: "18:00" };
+document.getElementById('availTime').innerText = availability.open + " - " + availability.close;
+document.getElementById('openTime').value = availability.open;
+document.getElementById('closeTime').value = availability.close;
+
+let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+
+function setRole(role){
+  document.getElementById('roleSelection').style.display = 'none';
+  if(role==='customer'){
+    document.getElementById('customerView').style.display='block';
+  } else {
+    document.getElementById('adminView').style.display='block';
+    renderBookings();
+  }
+}
+
+document.getElementById('bookingForm').onsubmit = function(e){
+  e.preventDefault();
+  let form = e.target;
+  bookings.push({
+    name: form.name.value,
+    service: form.service.value,
+    date: form.date.value,
+    time: form.time.value
+  });
+  localStorage.setItem('bookings', JSON.stringify(bookings));
+  document.getElementById('confirmation').innerText = "Booking submitted! ✅";
+  form.reset();
+}
+
+function saveAvailability(){
+  availability.open = document.getElementById('openTime').value;
+  availability.close = document.getElementById('closeTime').value;
+  localStorage.setItem('availability', JSON.stringify(availability));
+  document.getElementById('availTime').innerText = availability.open + " - " + availability.close;
+}
+
+function renderBookings(){
+  const list = document.getElementById('bookingList');
+  list.innerHTML = '';
+  bookings.forEach(b => {
+    let li = document.createElement('li');
+    li.innerText = `${b.name} - ${b.service} on ${b.date} at ${b.time}`;
+    list.appendChild(li);
+  });
+}
+</script>
+</body>
+</html>
